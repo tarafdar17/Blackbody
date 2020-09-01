@@ -1,0 +1,98 @@
+
+clc;
+close all;
+clear all;
+
+c = 299792458;
+Planck = 6.62606896e-34;
+Boltzmann = 1.380650424e-23; 
+micro = 1e-6;
+Sigma = (2 * (pi^5) * (Boltzmann^4)) / (15 * (Planck^3) * (c^2)); %Stefan-Boltzmann constant
+C1 = 2 * pi * Planck * (c^2);       	
+C2 = (Planck * c) / Boltzmann;
+
+
+
+T1=6000; 
+
+subplot(2,1,1);
+Wavelength1=(0.0 : 0.01 : 4).* micro; 
+SpectralRadiance1 = (2*Planck*c*c)./((Wavelength1.^5).*(exp((Planck.*c)./(Boltzmann.*T1.*Wavelength1))-1));
+TotalRadiance1 = Sigma * (T1.^4);
+plot(Wavelength1,SpectralRadiance1,'r','linewidth',2)
+grid on
+xlabel('\bf\fontname{arial}\fontsize{14}Wavelength [\mum]');
+ylabel('\bf\fontname{arial}\fontsize{14}Spectral Radiance [W sr^{-1} m^{-2} {\mum}^{-1}]');
+title('\bf\fontname{arial}\fontsize{14}Blackbody Radiation - SUN','Fontsize',14);
+legend('T = 6000K','location','best');
+
+    
+T2=300; 
+
+subplot(2,1,2);
+Wavelength2=(0.0 : 0.01 : 50).* micro; 
+SpectralRadiance2 =  (2*Planck*c*c)./((Wavelength2.^5).*(exp((Planck.*c)./(Boltzmann.*T2.*Wavelength2))-1));
+plot(Wavelength2,SpectralRadiance2,'b','linewidth',2)
+grid on
+xlabel('\bf\fontname{arial}\fontsize{14}Wavelength [\mum]');
+ylabel('\bf\fontname{arial}\fontsize{14}Spectral Radiance [W sr^{-1} m^{-2} {\mum}^{-1}]');
+title('\bf\fontname{arial}\fontsize{14}Blackbody Radiation - EARTH','Fontsize',14);
+legend('T = 300K','location','best');
+TotalRadiance2 = Sigma * (T2.^4);
+
+
+
+Temperature = 6000;
+Wavelength = [9, 11];                  
+TotalRadiance1 = Sigma * (Temperature.^4);
+SpecRad([-1, Temperature, C1, C2]);            
+WL = Wavelength * micro;
+Result.Wavelength = [min(Wavelength), max(Wavelength)];
+Result.SpectralRadiance1 = quadgk(@SpecRad, min(WL), max(WL));
+
+
+Wavelength = [0.4, 0.7]; 
+WL = Wavelength * micro;
+Result.Wavelength = [min(Wavelength), max(Wavelength)];
+Result.SpectralRadiance2 = quadgk(@SpecRad, min(WL), max(WL));
+
+FractionalRadiance1 = Result.SpectralRadiance1 + Result.SpectralRadiance2;
+disp([newline,'Total Spectral Radiance for 6000K: ', num2str(TotalRadiance1),' Watts / meter^2/micron']);
+disp([newline,'Total spectra radiance fraction inbetween the wavelenghts of 400-700nm + 9-11um for the temprature of T = 6000K:']);
+disp([num2str(FractionalRadiance1),' Watts / meter^2/micron']);
+
+Temperature = 300;
+Wavelength = [0.4, 0.7];                 
+TotalRadiance1 = Sigma * (Temperature.^4);
+SpecRad([-1, Temperature, C1, C2]);            
+WL = Wavelength * micro;
+Result.Wavelength = [min(Wavelength), max(Wavelength)];
+Result.SpectralRadiance3 = quadgk(@SpecRad, min(WL), max(WL));
+
+Wavelength = [9, 11];
+Result.SpectralRadiance4 = quadgk(@SpecRad, min(WL), max(WL));
+
+FractionalRadiance2 = Result.SpectralRadiance3 + Result.SpectralRadiance4;
+disp([newline,'Total Spectral Radiance for 300K: ', num2str(TotalRadiance2),' Watts / meter^2/micron']);
+disp([newline,'Total spectra radiance fraction inbetween the wavelenghts of 400-700nm + 9-11um for the temprature of T = 300K:']);
+disp([num2str(FractionalRadiance2), ' Watts / meter^2/micron']);
+
+
+function out = SpecRad(WL)
+persistent Temperature C1 C2
+if(WL(1) < 0)
+    Temperature = WL(2);
+    C1 = WL(3);
+    C2 = WL(4);
+else
+	WL5 = WL.^5;
+	out = C1 ./ (WL5 .* (exp(C2 ./ (WL .* Temperature)) - 1));
+
+
+end
+end
+  
+  
+  
+  
+  
